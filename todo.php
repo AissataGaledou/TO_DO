@@ -1,8 +1,31 @@
-<?php 
+<?php
 session_start();
 
-echo "Login successful!";
-exit();
+if (!isset($_SESSION['user_email'])) {
+    header("Location: signup.html");
+    exit();
+}
+
+$conn = new mysqli('localhost', 'root', 'AYE@@GLD', 'todo_db');
+
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+$email = $_SESSION['user_email'];
+
+$stmt = $conn->prepare("SELECT Verified FROM sign_in WHERE Email = ?");
+$stmt->bind_param("s", $email);
+$stmt->execute();
+$stmt->bind_result($verified);
+$stmt->fetch();
+$stmt->close();
+$conn->close();
+
+if (!$verified) {
+    header("Location: verify_prompt.php");
+    exit();
+}
 ?>
 
 <!DOCTYPE html>
@@ -15,20 +38,22 @@ exit();
     <title>To Do</title>
 </head>
 <body>
-
+   <div class="container">
         <div class="todo-header">
             <h2>ToDo List</h2>
             <span class="material-symbols-outlined" height="50px">
                 note_alt
-                </span>
+            </span>
         </div>   
 
         <div class="todo-body">
             <input type="text" id="todoText"  class="todo-input" placeholder="Add your items"/> 
             <button onclick="addTask()"> <span class="material-symbols-outlined" style="font-size: 50px;">add</span></button>
         </div>
+
         <h5 id="Alert"></h5>
-        <ul id="list-items" class="list-items"></ul></div>
+        <ul id="list-items" class="list-items"></ul>
+    </div>
     
     <script src="todo.js"></script>
 </body>

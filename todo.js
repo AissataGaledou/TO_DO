@@ -35,7 +35,7 @@ function verifyOTP() {
     const otp = document.getElementById('otp').value.trim();
     const message = document.getElementById('verify-message');
 
-    fetch('verify_otp.php', {
+    fetch('verify_opt.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: 'email=' + encodeURIComponent(email) + '&otp=' + encodeURIComponent(otp)
@@ -57,9 +57,37 @@ function verifyOTP() {
         message.style.color = 'red';
     });
 }
+// Check if email is verified on page load
+function checkEmailVerificationStatus() {
+    console.log("Checking email verification status...");
+    fetch('check_verification.php')
+    .then(response => {
+        console.log("Raw response:", response);
+        return response.json();
+    })
+    .then(data => {
+        console.log("Verification data received:", data);
+        isEmailVerified = data.verified;
+        console.log("isEmailVerified set to:", isEmailVerified);
+        if (isEmailVerified) {
+            document.getElementById('todo-section').style.display = 'block';
+        }
+    })
+    .catch(error => {
+        console.error('Error checking verification status:', error);
+    });
+}
+
+// Call this function when the page loads
+document.addEventListener('DOMContentLoaded', function() {
+    loadTasks();
+    checkEmailVerificationStatus();
+});
 
 // Add Task
 function addTask() {
+    console.log("Add task clicked, isEmailVerified =", isEmailVerified);
+
     if (!isEmailVerified) {
         alert('You need to verify your email before adding tasks!');
         return;
@@ -124,6 +152,7 @@ function loadTasks() {
 
 // Add Task to List
 function addTaskToList(id, text, completed) {
+    
     const listItems = document.getElementById('list-items');
     const li = document.createElement('li');
     li.setAttribute('data-id', id);
@@ -183,10 +212,6 @@ function deleteTask(taskId) {
     .catch(error => console.error('Error deleting task:', error));
 }
 
-// Load tasks on page load
-document.addEventListener('DOMContentLoaded', function () {
-    loadTasks();
-});
 
 // Example of login success redirect (if part of login process)
 function loginUser(email, password) {
